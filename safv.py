@@ -14,6 +14,9 @@ TAG_SIZE = 0.044  # meters (set to whatever your printed tag size is)
 fx = fy = 1000  # approximate focal length in pixels
 cx, cy = 960, 540  # image center for 1920x1080
 
+# Screen Anotation
+text_border = 50 # border in pixels from edge of frame
+
 # ---- Select File ----
 if len(sys.argv) < 2:
     print("Usage: python safv.py /path/to/video.mp4")
@@ -112,6 +115,23 @@ while True:
         angle_deg = np.degrees(yaw - initial_yaw)
 
     output.append((timestamp, angle_deg))
+
+    # Annotate steering angle in lower-left corner
+    if angle_deg is not None:
+        text = f"Angle: {angle_deg:.2f} deg"
+    else:
+        text = "Angle: -- deg"
+    cv2.putText(
+        frame,
+        text,
+        (text_border, frame_height - text_border),  #  num px from left, num px from top
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1.0,
+        (255, 255, 255),  # white text
+        2,
+        cv2.LINE_AA
+    )
+
     video_out.write(frame)
     frame_idx += 1
 
