@@ -1,10 +1,11 @@
+import sys
 import cv2
 import numpy as np
-from pupil_apriltags import Detector
 import csv
+from pupil_apriltags import Detector
+from pathlib import Path
 
 # ---- Settings ----
-VIDEO_PATH = 'video/test_video_no_tag.mp4'   # Your DJI video file
 TAG_FAMILY = 'tag36h11'
 TAG_SIZE = 0.05  # meters (set to whatever your printed tag size is)
 
@@ -12,9 +13,17 @@ TAG_SIZE = 0.05  # meters (set to whatever your printed tag size is)
 fx = fy = 1000  # approximate focal length in pixels
 cx, cy = 960, 540  # image center for 1920x1080
 
+# ---- Select File ----
+if len(sys.argv) < 2:
+    print("Usage: python your_script.py /path/to/video.mp4")
+    exit(1)
+
+video_path = sys.argv[1]
+csv_path = Path(video_path).with_suffix('.csv')
+
 # ---- Initialization ----
 print("Initializing...")
-cap = cv2.VideoCapture(VIDEO_PATH)
+cap = cv2.VideoCapture(video_path)
 fps = cap.get(cv2.CAP_PROP_FPS)
 dt = 1.0 / fps
 detector = Detector(families=TAG_FAMILY)
@@ -65,10 +74,10 @@ print("Frames processed.")
 cap.release()
 
 # ---- Save to CSV ----
-with open('steering_angle_output.csv', 'w', newline='') as f:
+with open(csv_path, 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(['Time (s)', 'Steering Angle (deg)'])
     for t, a in output:
         writer.writerow([f"{t:.4f}", "" if a is None else f"{a:.2f}"])
 
-print("Done. Output saved to 'steering_angle_output.csv'")
+print(f"Done. Output saved to: '{csv_path}'")
